@@ -12,10 +12,10 @@ class ChangeOutdoorAir < OpenStudio::Ruleset::ModelUserScript
     args = OpenStudio::Ruleset::OSArgumentVector.new
 
     #make an argument for reduction percentage
-    design_spec_outdoor_air_per_area = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("design_spec_outdoor_air_per_area",true)
-    design_spec_outdoor_air_per_area.setDisplayName("Design Specification Outdoor Air Flow per Area (ft/min).")
-    design_spec_outdoor_air_per_area.setDefaultValue(0.0)
-    args << design_spec_outdoor_air_per_area
+    design_spec_outdoor_air_per_person = OpenStudio::Ruleset::OSArgument::makeDoubleArgument("design_spec_outdoor_air_per_person",true)
+    design_spec_outdoor_air_per_person.setDisplayName("Design Specification Outdoor Air Flow per Person (ft3/min-person).")
+    design_spec_outdoor_air_per_person.setDefaultValue(0.0)
+    args << design_spec_outdoor_air_per_person
 
     return args
   end #end the arguments method
@@ -30,11 +30,11 @@ class ChangeOutdoorAir < OpenStudio::Ruleset::ModelUserScript
     end
 
     #assign the user inputs to variables
-    design_spec_outdoor_air_per_area = runner.getDoubleArgumentValue("design_spec_outdoor_air_per_area",user_arguments)
+    design_spec_outdoor_air_per_person = runner.getDoubleArgumentValue("design_spec_outdoor_air_per_person",user_arguments)
 
-    #check the design_spec_outdoor_air_per_area for reasonableness
-    if design_spec_outdoor_air_per_area > 50 or design_spec_outdoor_air_per_area < 0
-      runner.registerError("Please enter a value >=0 and <= 50 for the Outdoor Air Flow per Area.")
+    #check the design_spec_outdoor_air_per_person and design_spec_outdoor_air_per_area for reasonableness
+    if design_spec_outdoor_air_per_person > 50 or design_spec_outdoor_air_per_person < 0
+      runner.registerError("Please enter a value >=0 and <= 50 for the Outdoor Air Flow per Person.")
       return false
     end
 	
@@ -55,7 +55,7 @@ class ChangeOutdoorAir < OpenStudio::Ruleset::ModelUserScript
     end
 
     #convert arguments to si for future use
-    design_spec_outdoor_air_per_area_si = unit_helper(design_spec_outdoor_air_per_area, "ft/min","m/s")
+    design_spec_outdoor_air_per_person_si = unit_helper(design_spec_outdoor_air_per_person, "ft^3/min","m^3/s")
 	
     #get space design_spec_outdoor_air_objects objects used in the model
     design_spec_outdoor_air_objects = model.getDesignSpecificationOutdoorAirs
@@ -122,13 +122,13 @@ class ChangeOutdoorAir < OpenStudio::Ruleset::ModelUserScript
     end #end of design_spec_outdoor_air_objects.each do
 
     #def to alter performance and life cycle costs of objects
-    def alter_performance(object, design_spec_outdoor_air_per_area_si, runner)
+    def alter_performance(object, design_spec_outdoor_air_per_person_si, runner)
 
       #edit instance based on percentage reduction
       instance = object
 
       #not checking if fields are empty because these are optional like values for space infiltration are.
-      new_outdoor_air_per_area = instance.setOutdoorAirFlowperFloorArea(design_spec_outdoor_air_per_area_si)
+      new_outdoor_air_per_person = instance.setOutdoorAirFlowperPerson(design_spec_outdoor_air_per_person_si)
 
     end #end of def alter_performance()
 
@@ -160,10 +160,10 @@ class ChangeOutdoorAir < OpenStudio::Ruleset::ModelUserScript
       instance_processed << instance
 
       #call def to alter performance
-      alter_performance(instance, design_spec_outdoor_air_per_area_si, runner)
+      alter_performance(instance, design_spec_outdoor_air_per_person_si, runner)
 
       #rename
-      updated_instance_name = instance.setName("#{instance.name} (#{design_spec_outdoor_air_per_area} ft/min")
+      updated_instance_name = instance.setName("#{instance.name} (#{design_spec_outdoor_air_per_person} ft3/min-person")
       altered_instances += 1
 
     end

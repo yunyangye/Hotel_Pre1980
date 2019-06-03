@@ -61,7 +61,7 @@
 		{
 			"measure_dir_name": "ChangeOutdoorAir",
 			"arguments": {
-				"design_spec_outdoor_air_per_area": 0.4	
+				"design_spec_outdoor_air_per_person": 25.0
 			}
 		},
 		{
